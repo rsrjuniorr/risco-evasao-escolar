@@ -13,6 +13,18 @@ st.set_page_config(
     page_title="Risco de Evasão Escolar", page_icon="🎓", layout="centered"
 )
 
+# Estilo de fundo opcional (Cinza/gelo bem moderno)
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: #F8FAFC;
+    }
+    </style>
+""",
+    unsafe_allow_html=True,
+)
+
 # ==========================================
 # PASSO 1: GERAÇÃO DE DADOS EQUILIBRADA
 # ==========================================
@@ -76,7 +88,6 @@ joblib.dump(modelo, arquivo_modelo)
 # PASSO 3: INTERFACE DO SITE (Design Limpo)
 # ==========================================
 
-# Cabeçalho centralizado
 st.markdown(
     "<h1 style='text-align: center; color: #1E3A8A;'>🎓 Monitor de Risco de"
     " Evasão Escolar</h1>",
@@ -90,13 +101,11 @@ st.markdown(
 )
 st.markdown("---")
 
-# Seção de Entrada de Dados (Em uma única coluna organizada)
 st.subheader("📝 Informe os Dados do Aluno")
 st.write(
     "Arraste os seletores abaixo com o perfil acadêmico que deseja analisar:"
 )
 
-# Dividindo os sliders em duas colunas internas para ficar mais espaçado e bonito
 col1, col2 = st.columns(2)
 
 with col1:
@@ -107,9 +116,8 @@ with col2:
   faltas = st.slider("Número de faltas", 0, 25, 4)
   atividades = st.slider("Atividades entregues", 0, 10, 8)
 
-st.markdown("")  # Espaçamento
+st.markdown("")
 
-# Botão centralizado / de destaque para análise
 analisar = st.button(
     "🔍 Analisar Risco Acadêmico", use_container_width=True, type="primary"
 )
@@ -147,7 +155,6 @@ if analisar:
         f" estabilidade."
     )
 
-  # Explicar o caminho lógico da árvore em um bloco estilizado
   st.markdown("### 🌳 Caminho da Decisão (Regras do Modelo)")
   st.info(
       "O modelo de Machine Learning chegou a esta conclusão percorrendo as"
@@ -185,10 +192,9 @@ if analisar:
     else:
       st.write(
           f"🔹 **{feature_names[feature_id]}** (`{val_usuario}`) é maior que"
-          f" `{threshold_val:[.1f]}`".replace("[.1f]", f"{threshold_val:.1f}")
+          f" `{threshold_val:.1f}`"
       )
 
-# Seção Como Funciona no rodapé
 st.markdown("---")
 with st.expander("ℹ️ Sobre o Sistema e Detalhes Técnicos"):
   st.write("""
