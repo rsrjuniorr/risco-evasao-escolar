@@ -7,19 +7,24 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
 # ==========================================
+# CONFIGURAÇÃO DA PÁGINA (Layout limpo em coluna única)
+# ==========================================
+st.set_page_config(
+    page_title="Risco de Evasão Escolar", page_icon="🎓", layout="centered"
+)
+
+# ==========================================
 # PASSO 1: GERAÇÃO DE DADOS EQUILIBRADA
 # ==========================================
-# Mudamos o arquivo para forçar a regerar os dados com melhor distribuição
 arquivo_dados = "dados_evasao.csv"
 arquivo_modelo = "modelo_evasao.pkl"
 
-# Se quiser forçar a recriação com dados mais balanceados:
 if os.path.exists(arquivo_dados):
   os.remove(arquivo_dados)
 if os.path.exists(arquivo_modelo):
   os.remove(arquivo_modelo)
 
-np.random.seed(10)  # Nova semente para melhor distribuição
+np.random.seed(10)
 n_linhas = 400
 
 horas_estudo = np.random.randint(2, 35, n_linhas)
@@ -29,23 +34,19 @@ atividades_entregues = np.random.randint(1, 10, n_linhas)
 
 evasao = []
 for i in range(n_linhas):
-  # Fórmula balanceada para dar variação real de risco
   pontuacao = (
       (faltas[i] * 2.0)
       - (media_notas[i] * 1.5)
       - (horas_estudo[i] * 0.4)
       - (atividades_entregues[i] * 0.6)
   )
-  ruido = np.random.normal(
-      0, 3
-  )  # Ruído controlado para misturar os dados realisticamente
+  ruido = np.random.normal(0, 3)
   total = pontuacao + ruido
 
-  # Ponto de corte ajustado para balancear as classes (~50% cada)
   if total > 2.5:
-    evasao.append(1)  # Alto Risco
+    evasao.append(1)
   else:
-    evasao.append(0)  # Baixo Risco
+    evasao.append(0)
 
 df = pd.DataFrame(
     {
@@ -67,31 +68,53 @@ y = df["evadiu"]
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
-# max_depth=4 para permitir um aprendizado um pouco mais rico nas regras
 modelo = DecisionTreeClassifier(max_depth=4, random_state=42)
 modelo.fit(X_train, y_train)
-
 joblib.dump(modelo, arquivo_modelo)
 
 # ==========================================
-# PASSO 3: INTERFACE DO SITE (Streamlit)
+# PASSO 3: INTERFACE DO SITE (Design Limpo)
 # ==========================================
-st.title("🎓 Monitor de Risco de Evasão Escolar")
+
+# Cabeçalho centralizado
+st.markdown(
+    "<h1 style='text-align: center; color: #1E3A8A;'>🎓 Monitor de Risco de"
+    " Evasão Escolar</h1>",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    "<p style='text-align: center; color: #4B5563;'>Sistema inteligente de"
+    " apoio pedagógico baseado em Árvore de Decisão para prever e prevenir a"
+    " evasão de alunos.</p>",
+    unsafe_allow_html=True,
+)
+st.markdown("---")
+
+# Seção de Entrada de Dados (Em uma única coluna organizada)
+st.subheader("📝 Informe os Dados do Aluno")
 st.write(
-    "Esta aplicação utiliza uma **Árvore de Decisão** para estimar o risco de"
-    " um aluno evadir com base no seu perfil acadêmico."
+    "Arraste os seletores abaixo com o perfil acadêmico que deseja analisar:"
 )
 
-# Formulário lateral
-st.sidebar.header("Perfil do Aluno")
-horas = st.sidebar.slider("Horas de estudo por semana", 1, 40, 10)
-faltas = st.sidebar.slider("Número de faltas", 0, 25, 8)
-media = st.sidebar.slider("Média de notas (0 a 10)", 0.0, 10.0, 6.0)
-atividades = st.sidebar.slider(
-    "Atividades entregues (último mês)", 0, 10, 5
+# Dividindo os sliders em duas colunas internas para ficar mais espaçado e bonito
+col1, col2 = st.columns(2)
+
+with col1:
+  horas = st.slider("Horas de estudo / semana", 1, 40, 15)
+  media = st.slider("Média de notas (0 a 10)", 0.0, 10.0, 7.0)
+
+with col2:
+  faltas = st.slider("Número de faltas", 0, 25, 4)
+  atividades = st.slider("Atividades entregues", 0, 10, 8)
+
+st.markdown("")  # Espaçamento
+
+# Botão centralizado / de destaque para análise
+analisar = st.button(
+    "🔍 Analisar Risco Acadêmico", use_container_width=True, type="primary"
 )
 
-if st.button("Analisar Risco"):
+if analisar:
   dados_entrada = pd.DataFrame(
       [[horas, faltas, media, atividades]],
       columns=[
@@ -105,21 +128,32 @@ if st.button("Analisar Risco"):
   predicao = modelo.predict(dados_entrada)[0]
   probabilidade = modelo.predict_proba(dados_entrada)[0]
 
-  st.subheader("Resultado da Análise")
+  st.markdown("---")
+  st.subheader("📊 Resultado da Análise")
+
   if predicao == 1:
     st.error(
-        f"⚠️ **Alto Risco de Evasão** (Probabilidade de evasão:"
-        f" {probabilidade[1]*100:.1f}%)"
+        f"⚠️ **ALTO RISCO DE EVASÃO DETECTADO**\n\n"
+        f"- Probabilidade de Evasão: **{probabilidade[1]*100:.1f}**%\n"
+        f"- *Recomendação:* O aluno apresenta fatores críticos (como faltas"
+        f" elevadas ou baixo rendimento). Recomenda-se abordagem de"
+        f" acompanhamento pedagógico."
     )
   else:
     st.success(
-        f"✅ **Baixo Risco / Aluno Estável** (Probabilidade de permanência:"
-        f" {probabilidade[0]*100:.1f}%)"
+        f"✅ **BAIXO RISCO / ALUNO ESTÁVEL**\n\n"
+        f"- Probabilidade de Permanência: **{probabilidade[0]*100:.1f}**%\n"
+        f"- *Recomendação:* O perfil indica bom engajamento acadêmico e"
+        f" estabilidade."
     )
 
-  # Explicar o caminho lógico da árvore
-  st.markdown("---")
-  st.subheader("🌳 Caminho da Árvore de Decisão (Regras percorridas)")
+  # Explicar o caminho lógico da árvore em um bloco estilizado
+  st.markdown("### 🌳 Caminho da Decisão (Regras do Modelo)")
+  st.info(
+      "O modelo de Machine Learning chegou a esta conclusão percorrendo as"
+      " seguintes regras com base nos dados informados:"
+  )
+
   node_indicator = modelo.decision_path(dados_entrada)
   leaf_id = modelo.apply(dados_entrada)
   feature = modelo.tree_.feature
@@ -145,20 +179,20 @@ if st.button("Analisar Risco"):
 
     if val_usuario <= threshold_val:
       st.write(
-          f"- O aluno tem **{feature_names[feature_id]}** = `{val_usuario}`"
-          f" (menor ou igual a `{threshold_val:.1f}`)"
+          f"🔹 **{feature_names[feature_id]}** (`{val_usuario}`) é menor ou"
+          f" igual a `{threshold_val:.1f}`"
       )
     else:
       st.write(
-          f"- O aluno tem **{feature_names[feature_id]}** = `{val_usuario}`"
-          f" (maior que `{threshold_val:.1f}`)"
+          f"🔹 **{feature_names[feature_id]}** (`{val_usuario}`) é maior que"
+          f" `{threshold_val:[.1f]}`".replace("[.1f]", f"{threshold_val:.1f}")
       )
 
-# Seção Como Funciona
+# Seção Como Funciona no rodapé
 st.markdown("---")
-with st.expander("ℹ️ Como Funciona (Detalhes Técnicos)"):
+with st.expander("ℹ️ Sobre o Sistema e Detalhes Técnicos"):
   st.write("""
-    - **Técnica:** Árvore de Decisão (`DecisionTreeClassifier`).
-    - **Dataset:** 400 linhas geradas sinteticamente via script Python com regras e ruído controlado.
-    - **Métrica:** Acurácia no conjunto de teste.
+    - **Técnica de Mineração:** Árvore de Decisão (`DecisionTreeClassifier` do scikit-learn).
+    - **Base de Dados:** 400 registros simulados via script com modelagem de correlação realista e ruído controlado.
+    - **Objetivo Acadêmico:** Atender aos requisitos do projeto prático de Mineração de Dados, garantindo interpretabilidade total das regras de decisão.
     """)
