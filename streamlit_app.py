@@ -7,18 +7,21 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
 # ==========================================
-# CONFIGURAÇÃO DA PÁGINA (Layout limpo em coluna única)
+# CONFIGURAÇÃO DA PÁGINA E DESIGN (CSS)
 # ==========================================
 st.set_page_config(
     page_title="Risco de Evasão Escolar", page_icon="🎓", layout="centered"
 )
 
-# Estilo de fundo opcional (Cinza/gelo bem moderno)
+# Estilo visual limpo: fundo cinza claro moderno e textos escuros legíveis
 st.markdown(
     """
     <style>
     .stApp {
         background-color: #F8FAFC;
+    }
+    body, .stMarkdown, .stText, p, span, label {
+        color: #1E293B !important;
     }
     </style>
 """,
@@ -85,7 +88,7 @@ modelo.fit(X_train, y_train)
 joblib.dump(modelo, arquivo_modelo)
 
 # ==========================================
-# PASSO 3: INTERFACE DO SITE (Design Limpo)
+# PASSO 3: INTERFACE DO SITE (Streamlit)
 # ==========================================
 
 st.markdown(
